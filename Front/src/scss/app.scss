@@ -1,0 +1,22 @@
+
+:root {
+  font-family: Libre Franklin, sans-serif;
+  --background: #0097dc;
+  --white: #ffffff;
+  --color: #0097dc; //main
+  --color2: #0b55b2; //Buttons
+  --colorT: #000000; //titles
+}
+html,
+body {
+  scroll-behavior: smooth;
+  margin: 0;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+p{
+  color: gray;
+  font-family: Libre Franklin,sans-serif;
+}
