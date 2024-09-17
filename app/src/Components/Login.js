@@ -1,23 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import Cookies from 'js-cookie'; // Import js-cookie
+import Cookies from 'js-cookie'; 
 import { Box, Typography, Container, Button, Link } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
-import CTextField from './Custom/TextField'; // Adjust the path as necessary
+import { useNavigate } from 'react-router-dom'; 
+import CTextField from './Custom/TextField'; 
+import ErrorModal from './Custom/ErrorModal'; // Import the ErrorModal component
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
   password: Yup.string().required('Password is required'),
-}); 
+});
 
 const Login = () => {
-  const navigate = useNavigate(); // Initialize useNavigate hook for redirection
+  const navigate = useNavigate(); 
+  const [error, setError] = useState(null); // State for managing error messages
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for controlling the modal
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+  };
 
   return (
-    <Container 
-      maxWidth="xs" 
+    <Container
+      maxWidth="xs"
       sx={{
         background: 'linear-gradient(135deg, #1c1c1c, #2c2c2c)',
         borderRadius: '8px',
@@ -26,10 +33,7 @@ const Login = () => {
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
       }}
     >
-      <Typography variant="h4" gutterBottom align="center" sx={{ color: 'white', 
-                    textAlign: 'center', 
-                    marginBottom: '2rem', 
-                    fontFamily: 'Bebas Neue, sans-serif', }}>
+      <Typography variant="h4" gutterBottom align="center" sx={{ color: 'white', textAlign: 'center', marginBottom: '2rem', fontFamily: 'Bebas Neue, sans-serif' }}>
         Login to Marvelverse
       </Typography>
       <Formik
@@ -50,7 +54,8 @@ const Login = () => {
             navigate('/'); // Redirect to the home page after successful login
           } catch (error) {
             console.error('Error logging in:', error);
-            // Optionally, handle errors here (e.g., show a notification)
+            setError(error.response?.data?.message || 'Invalid login credentials');
+            setIsModalOpen(true); // Open the error modal
           } finally {
             setSubmitting(false);
           }
@@ -87,6 +92,14 @@ const Login = () => {
           </Form>
         )}
       </Formik>
+
+      {/* Error Modal */}
+      <ErrorModal 
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        title="Login Error"
+        message={error}
+      />
     </Container>
   );
 };

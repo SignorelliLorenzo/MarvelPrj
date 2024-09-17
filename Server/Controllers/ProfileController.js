@@ -1,24 +1,87 @@
 const User = require("../Models/User.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const UserModel = require("../Models/User.js");
+const PacketCopyModel = require("../Models/PacketCopy");
+const CopyModel = require("../Models/Copy");
+const RequestModel = require("../Models/Request");
+
+async function deleteProfile(req, res) {
+  try {
+    const userId = req.currentUser._id;
+
+    await PacketCopyModel.deleteMany({ ownerId: userId });
+    await CopyModel.deleteMany({ ownerId: userId });
+
+    await RequestModel.deleteMany({ ownerRequest: userId, accepted: false });
+
+    await RequestModel.updateMany(
+      { ownerRequest: userId, accepted: true },
+      { $set: { ownerRequest: null } }
+    );
+    await UserModel.findByIdAndDelete(userId);
+
+    res.status(200).json({ message: "Profile and associated data deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting profile", error });
+  }
+}
 
 // Create a new user
 const createUser = async (req, res) => {
   try {
-   const { username, email, password } = req.body;
-  
+    const { username, email, password } = req.body;
+
+    // Check if email or username already exists
+    const existingUser = await UserModel.findOne({ $or: [{ email }, { username }] });
+
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Username or email already in use." 
+      });
+    }
+
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const user = await UserModel.create({
       username,
       email,
       password: hashedPassword,
     });
+
     sendToken(user, 201, res);
+
   } catch (err) {
-    console.log(err)
-    res.status(500).json({ success: false, error: err});
+    console.log(err);
+
+    // Specific error handling based on the type of error
+    if (err.name === "ValidationError") {
+      // Handle validation errors, e.g., missing required fields
+      return res.status(400).json({ 
+        success: false, 
+        message: "Validation error. Please ensure all required fields are filled correctly.", 
+        error: err.message 
+      });
+    }
+
+    if (err.code === 11000) {
+      // Handle duplicate key errors (for unique fields like email/username)
+      const field = Object.keys(err.keyValue)[0];
+      return res.status(400).json({ 
+        success: false, 
+        message: `Duplicate field: ${field}. This ${field} is already taken.`,
+        error: err.message 
+      });
+    }
+
+    // Fallback for all other server errors
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error. Please try again later.", 
+      error: err.message 
+    });
   }
 };
 
@@ -110,4 +173,5 @@ module.exports = {
   loginUser,
   updateProfile,
   addCredits,
+  deleteProfile,
 };

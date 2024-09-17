@@ -18,6 +18,7 @@ import PlaceholderPic from "../images/profile-placeholder.png";
 import CustomTextField from "./Custom/TextField"; // Import your custom TextField component
 import EditIcon from "@mui/icons-material/Edit"; // Import the pencil icon
 import Autocomplete from '@mui/material/Autocomplete';
+import ConfirmationModal from "./Custom/ConfirmationModal";
 import axios from "axios";
 
 const Profile = ({ setUserParentInfo }) => {
@@ -28,15 +29,16 @@ const Profile = ({ setUserParentInfo }) => {
     profileImage: "",
   });
   const [cardOptions, setCardOptions] = useState([]);
-  const [currentSelected, setCurrentSelected] = useState(null);
+  const [currentSelected, setCurrentSelected] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [newProfileImage, setNewProfileImage] = useState(null);
-  const [newPassword, setNewPassword] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loadingRequestedCards, setLoadingRequestedCards] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); 
   const token = Cookies.get("token");
   useEffect(() => {
     handleCardSearch("");
@@ -88,7 +90,27 @@ const Profile = ({ setUserParentInfo }) => {
       reader.readAsDataURL(file); // Convert the image to Base64
     }
   };
-
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${process.env.REACT_APP_API_DOMAIN}/api/profile/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        Cookies.remove("token"); // Clear the user's token
+        sessionStorage.clear(); // Clear session storage
+        window.location.href = "/login"; // Redirect to login page
+      } else {
+        setError("Failed to delete account");
+      }
+    } catch (error) {
+      setError("Error deleting account");
+    }
+  };
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     if (name === "newPassword") setNewPassword(value);
@@ -301,7 +323,7 @@ const Profile = ({ setUserParentInfo }) => {
                 InputLabelProps={{ style: { color: "#fff" } }}
               />
             </Grid>
-            <Grid item xs={12} sx={{ mt: 2 }}>
+            <Grid item xs={12} >
               <Autocomplete
                 value={currentSelected || null}
                 onInputChange={(event, value) => handleCardSearch(value)}
@@ -360,12 +382,26 @@ const Profile = ({ setUserParentInfo }) => {
               />
             </Grid>
             <Grid item xs={12}>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => setIsDeleteModalOpen(true)} // Open the confirmation modal
+              sx={{
+                width: "100%",
+                mt: 2,
+                borderColor: "#ff4444",
+                color: "#ff4444",
+              }}
+            >
+              Delete Account
+            </Button>
+            </Grid>
+            <Grid item xs={12}>
               <Button
                 variant="contained"
-                color="primary"
+                color="secondary"
                 fullWidth
                 onClick={handleSave}
-                sx={{ mt: 2 }}
               >
                 Save Changes
               </Button>
@@ -373,6 +409,13 @@ const Profile = ({ setUserParentInfo }) => {
           </Grid>
         </Card>
       )}
+       <ConfirmationModal
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)} // Close the modal if they cancel
+        onConfirm={handleDelete} // Call the handleDelete function if they confirm
+        title="Are you sure you want to delete your account?"
+        message="This action is irreversible, and you will lose all your data and account information."
+      />
     </Container>
   );
 };

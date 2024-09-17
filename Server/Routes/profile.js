@@ -3,6 +3,7 @@ const {
     updateProfile,
     addCredits,
     getUserInfo,
+    deleteProfile,
   } = require("../Controllers/ProfileController.js");
 const router = express.Router();
 /**
@@ -43,6 +44,24 @@ const router = express.Router();
  *         description: Error updating username
  */
 router.put("/", updateProfile);
+/**
+ * @swagger
+ * /api/profile/:
+ *   delete:
+ *     tags: [Profile]
+ *     summary: Delete profile
+ *     description: Delete the user profile from the system
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile deleted successfully
+ *       404:
+ *         description: Profile not found
+ *       500:
+ *         description: Error deleting profile
+ */
+router.delete("/", deleteProfile);
 
 /**
  * @swagger

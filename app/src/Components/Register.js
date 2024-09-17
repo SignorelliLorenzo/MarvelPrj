@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import Cookies from 'js-cookie'; // Import js-cookie
+import Cookies from 'js-cookie';
 import { Box, Typography, Button, Container, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import CTextField from './Custom/TextField'; // Adjust the path as necessary
+import CTextField from './Custom/TextField';
+import ErrorModal from './Custom/ErrorModal';  // Import the ErrorModal component
 
 const validationSchema = Yup.object().shape({
   username: Yup.string().required('Username is required'),
@@ -18,6 +19,12 @@ const validationSchema = Yup.object().shape({
 
 const Register = () => {
   const navigate = useNavigate();
+  const [error, setError] = useState(null); // State for managing error messages
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for controlling the modal
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+  };
 
   return (
     <Container 
@@ -30,7 +37,7 @@ const Register = () => {
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
       }}
     >
-      <Typography variant="h4" gutterBottom align="center" sx={{ color: '#ed1d24', marginBottom: '2rem' }}>
+      <Typography variant="h4" gutterBottom align="center" sx={{ color: 'white', textAlign: 'center', marginBottom: '2rem', fontFamily: 'Bebas Neue, sans-serif', }}>
         Register for Marvelverse
       </Typography>
       <Formik
@@ -47,12 +54,13 @@ const Register = () => {
               }
             );
             const { token } = response.data;
-            Cookies.set('token', token, { secure: true, sameSite: 'strict' }); // Save token to cookies
+            Cookies.set('token', token, { secure: true, sameSite: 'strict' });
             console.log('User registered successfully:', response.data);
             navigate('/'); // Redirect to the home page after successful registration
           } catch (error) {
             console.error('Error registering:', error);
-            // Optionally, you can handle errors here (e.g., show a notification)
+            setError(error.response?.data?.message || 'An error occurred during registration');
+            setIsModalOpen(true); // Open the error modal
           } finally {
             setSubmitting(false);
           }
@@ -93,11 +101,11 @@ const Register = () => {
                 error={touched.repeatPassword && !!errors.repeatPassword}
                 helperText={touched.repeatPassword && errors.repeatPassword}
               />
-              <Button type="submit" variant="contained" color="secondary" fullWidth>
+              <Button type="submit" variant="contained" color="primary" fullWidth>
                 Register
               </Button>
               <Box mt={2}>
-                <Typography variant="body2" align="center">
+                <Typography variant="body2" align="center" sx={{ color: 'white' }}>
                   Already have an account? <Link href="/login">Login</Link>
                 </Typography>
               </Box>
@@ -105,6 +113,14 @@ const Register = () => {
           </Form>
         )}
       </Formik>
+
+      {/* Error Modal */}
+      <ErrorModal 
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        title="Registration Error"
+        message={error}
+      />
     </Container>
   );
 };

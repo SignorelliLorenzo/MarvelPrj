@@ -14,7 +14,7 @@ const ConfirmationModal = ({
   cancelText = "Cancel",   // Default text for the cancel button
 }) => {
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { background: "#2a2a2a", color: "white" } }}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <Typography>{message}</Typography>
