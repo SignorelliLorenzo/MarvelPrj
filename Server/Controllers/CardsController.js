@@ -29,7 +29,7 @@ async function deleteCard(req, res) {
     const { cardId } = req.params;
 
     await CardModel.findByIdAndDelete(cardId);
-    await CopyModel.deleteMany({ componentId: cardId });
+    await CopyModel.deleteMany({ cardId: cardId });
 
     res.status(200).json({ message: "Card deleted successfully" });
   } catch (error) {
@@ -40,11 +40,21 @@ async function deleteCard(req, res) {
 // Function to get all cards
 async function getAllCards(req, res) {
   try {
-    const cards = await CardModel.find();
+    const { limit, cardName } = req.query; // Extract limit and cardName from the query params
+
+    // Build the query object based on cardName if it's provided
+    const query = {};
+    if (cardName) {
+      query.Name = { $regex: `^${cardName}`, $options: 'i' }; // Case-insensitive match for names starting with cardName
+    }
+    
+    // Execute the query and apply the limit if provided
+    const cards = await CardModel.find(query).limit(Number(limit) || 0); // 0 means no limit
+  
     res.status(200).json(cards);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error fetching cards", error });
+    console.error('Error fetching cards:', error);
+    res.status(500).json({ message: 'Error fetching cards', error });
   }
 }
 
@@ -53,14 +63,14 @@ async function getUserCards(req, res) {
   try {
     const userId = req.currentUser._id;
 
-    const userCopies = await CopyModel.find({ ownerId: userId }).populate('componentId');
+    const userCopies = await CopyModel.find({ ownerId: userId }).populate('cardId');
     const cardCounts = {};
 
     userCopies.forEach(copy => {
-      const cardId = copy.componentId._id;
+      const cardId = copy.cardId._id;
       if (!cardCounts[cardId]) {
         cardCounts[cardId] = {
-          card: copy.componentId,
+          card: copy.cardId,
           count: 0,
         };
       }
@@ -70,6 +80,7 @@ async function getUserCards(req, res) {
     const userCards = Object.values(cardCounts);
     res.status(200).json(userCards);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error fetching user cards", error });
   }
 }
@@ -86,7 +97,6 @@ async function getCardById(req, res) {
     if (!card) {
       return res.status(404).json({ message: "Card not found" });
     }
-
     res.status(200).json(card);
   } catch (error) {
     res.status(500).json({ message: "Error fetching card", error });

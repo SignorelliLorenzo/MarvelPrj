@@ -1,8 +1,8 @@
 const express = require("express");
 const {
-    updateUserProfileImage,
-    updateUsername,
+    updateProfile,
     addCredits,
+    getUserInfo,
   } = require("../Controllers/ProfileController.js");
 const router = express.Router();
 /**
@@ -11,40 +11,16 @@ const router = express.Router();
  *   name: Profile
  *   description: Profile Func
  */
-/**
- * @swagger
- * /api/profile/image:
- *   put:
- *     tags: [Profile]
- *     summary: Update user profile image
- *     requestBody:
- *       description: New profile image data
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               imageUrl:
- *                 type: string
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Profile image updated successfully
- *       500:
- *         description: Error updating profile image
- */
-router.put("/profile/image", updateUserProfileImage);
+
 
 /**
  * @swagger
- * /api/profile/username:
+ * /api/profile/:
  *   put:
  *     tags: [Profile]
- *     summary: Update username
+ *     summary: Update profile
  *     requestBody:
- *       description: New username data
+ *       description: New user data
  *       required: true
  *       content:
  *         application/json:
@@ -53,6 +29,11 @@ router.put("/profile/image", updateUserProfileImage);
  *             properties:
  *               username:
  *                 type: string
+ *               profileImage:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 required: false
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -61,7 +42,7 @@ router.put("/profile/image", updateUserProfileImage);
  *       500:
  *         description: Error updating username
  */
-router.put("/profile/username", updateUsername);
+router.put("/", updateProfile);
 
 /**
  * @swagger
@@ -87,5 +68,20 @@ router.put("/profile/username", updateUsername);
  *       500:
  *         description: Error adding credits
  */
-router.post("/profile/credits", addCredits);
+router.post("/credits", addCredits);
+/**
+ * @swagger
+ * /api/profile/:
+ *   get:
+ *     tags: [Profile]
+ *     summary: Gets User Info
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Info retrived successfully
+ *       500:
+ *         description: Error retriving info
+ */
+router.get("/",getUserInfo);
 module.exports = router;

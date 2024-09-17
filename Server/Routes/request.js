@@ -5,6 +5,7 @@ const {
     getRequestById,
     getAllRequests,
     getRequestsByCard,
+    deleteRequest,
   } = require("../Controllers/RequestController.js");
 const router = express.Router();
 /**
@@ -14,6 +15,28 @@ const router = express.Router();
  *   description: Request Func
  */
 
+/**
+ * @swagger
+ * /api/request/delete/{id}:
+ *   delete:
+ *     tags: [Request]
+ *     summary: Delete a request by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Request ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Request deleted successfully
+ *       404:
+ *         description: Request not found
+ *       500:
+ *         description: Error deleting request
+ */
+router.delete("/delete/:requestId", deleteRequest); 
 /**
  * @swagger
  * /api/request/card/{id}:
@@ -35,11 +58,11 @@ const router = express.Router();
  *       500:
  *         description: Error fetching requests by card ID
  */
-router.get("/request/card/:id", getRequestsByCard);
+router.get("/card/:id", getRequestsByCard);
 
 /**
  * @swagger
- * /api/request/{id}:
+ * /api/request/get/{id}:
  *   get:
  *     tags: [Request]
  *     summary: Get request by ID
@@ -58,7 +81,7 @@ router.get("/request/card/:id", getRequestsByCard);
  *       500:
  *         description: Error fetching request
  */
-router.get("/request/:id", getRequestById);
+router.get("/get/:id", getRequestById);
 
 /**
  * @swagger
@@ -66,15 +89,72 @@ router.get("/request/:id", getRequestById);
  *   get:
  *     tags: [Request]
  *     summary: Get all requests
+ *     description: Fetch all requests with optional filters for card name, limit, and accepted status.
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: Limit the number of requests returned
+ *       - in: query
+ *         name: cardName
+ *         schema:
+ *           type: string
+ *           example: "Dragon"
+ *         description: Filter requests by the name of the requested card (case-insensitive)
+ *       - in: query
+ *         name: notAccepted
+ *         schema:
+ *           type: boolean
+ *           example: true
+ *         description: Filter requests to only include those that have not been accepted (true or false)
  *     responses:
  *       200:
  *         description: A list of requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: The request ID
+ *                   ownerRequest:
+ *                     type: object
+ *                     properties:
+ *                       username:
+ *                         type: string
+ *                         description: The username of the owner of the request
+ *                   tradedCards:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         cardId:
+ *                           type: string
+ *                           description: The card ID of the traded card
+ *                   requestedCards:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                           description: The card ID of the requested card
+ *                   accepted:
+ *                     type: boolean
+ *                     description: Whether the request has been accepted or not
+ *       400:
+ *         description: Invalid query parameters
  *       500:
  *         description: Error fetching requests
  */
-router.get("/request/all", getAllRequests);
+router.get("/all", getAllRequests);
 
 /**
  * @swagger
@@ -100,7 +180,7 @@ router.get("/request/all", getAllRequests);
  *       500:
  *         description: Error accepting request
  */
-router.post("/request/accept", acceptRequest);
+router.post("/accept/:tradeId", acceptRequest);
 
 /**
  * @swagger
@@ -124,6 +204,9 @@ router.post("/request/accept", acceptRequest);
  *                 type: array
  *                 items:
  *                   type: string
+ *               credits:
+ *                 type: number
+ *                 required: false
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -132,5 +215,5 @@ router.post("/request/accept", acceptRequest);
  *       500:
  *         description: Error adding request
  */
-router.post("/request/add", addRequest);
+router.post("/add", addRequest);
 module.exports = router;

@@ -11,27 +11,41 @@ async function createPacket(req, res) {
     if (req.currentUser.admin !== true) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    const { Name, Ncards, Cost } = req.body;
+    console.log(req.body);
+    const { name, numberOfCards, price, image } = req.body;
 
     const newPacket = new PacketModel({
-      Name,
-      Ncards,
-      Cost,
+      Name: name,
+      img: image,
+      Ncarte: numberOfCards,
+      Price: price,
     });
 
     await newPacket.save();
     res.status(201).json(newPacket);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error creating packet", error });
   }
 }
-
+async function deletePacket(req, res) {
+  if (req.currentUser.admin !== true) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  try {
+    const { id } = req.params;
+    await PacketModel.findByIdAndDelete(id);
+    await PacketCopyModel.deleteMany({ packetId: id });
+    res.status(200);
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting packet", error });
+  }
+}
 // Function to open a packet copy
 async function openPacket(req, res) {
   try {
     const { packetId } = req.params;
     const userId = req.currentUser._id;
-
     // Find the packet copy for the current user
     const packetCopy = await PacketCopyModel.findOne({ _id: packetId, ownerId: userId });
     if (!packetCopy) {
@@ -43,23 +57,20 @@ async function openPacket(req, res) {
     if (!originalPacket) {
       return res.status(404).json({ message: "Original packet not found" });
     }
+    const nCards = originalPacket.Ncarte || 5; 
 
-    // Assuming Ncards is the number of cards to be opened
-    const nCards = originalPacket.Ncards || 5; // Default to 5 if not specified in original packet
-
-    // Get random components
     const components = await CardModel.aggregate([{ $sample: { size: nCards } }]);
     const componentIds = components.map(component => component._id);
-
-    // Create copies of the components and associate them with the user
+   
     const copies = componentIds.map(componentId => ({
-      componentId,
+      cardId: componentId,
       ownerId: userId,
     }));
-
+    
     await CopyModel.insertMany(copies);
-
-    res.status(200).json({ cardIds: componentIds });
+    const cards = await CardModel.find({ _id: { $in: componentIds } });
+    await PacketCopyModel.deleteOne({ _id: packetCopy._id });
+    res.status(200).json({ cards });
   } catch (error) {
     res.status(500).json({ message: "Error opening packet", error });
   }
@@ -68,7 +79,7 @@ async function openPacket(req, res) {
 // Function to buy a packet
 async function buyPacket(req, res) {
   try {
-    const { packetId } = req.params;
+    const { packetId } = req.body;
     const userId = req.currentUser._id;
 
     const packet = await PacketModel.findById(packetId);
@@ -77,11 +88,11 @@ async function buyPacket(req, res) {
     }
 
     const user = await UserModel.findById(userId);
-    if (user.crediti < packet.Cost) {
+    if (user.credits < packet.Cost) {
       return res.status(400).json({ message: "Not enough credits" });
     }
 
-    user.crediti -= packet.Cost;
+    user.credits -= packet.Price;
     await user.save();
 
     const newPacketCopy = new PacketCopyModel({
@@ -92,6 +103,7 @@ async function buyPacket(req, res) {
     await newPacketCopy.save();
     res.status(201).json(newPacketCopy);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error buying packet", error });
   }
 }
@@ -109,11 +121,22 @@ async function getAllPackets(req, res) {
 const getAllUnopenedPackets = async (req, res) => {
   try {
     const userId = req.currentUser._id;
-    const unopenedPackets = await PacketCopyModel.find({ ownerId: userId, opened: false });
+    const unopenedPackets = await PacketCopyModel.find({ ownerId: userId});
 
     res.status(200).json(unopenedPackets);
   } catch (error) {
     res.status(500).json({ message: "Error fetching unopened packets", error });
+  }
+};
+const getPacketById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const Packet = await PacketModel.findById(id);
+
+    res.status(200).json(Packet);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching packet", error });
   }
 };
 
@@ -123,5 +146,7 @@ module.exports = {
   createPacket,
   openPacket,
   buyPacket,
+  deletePacket,
   getAllPackets,
+  getPacketById
 };

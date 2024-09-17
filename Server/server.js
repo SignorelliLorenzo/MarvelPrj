@@ -22,12 +22,11 @@ const protect = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     token = req.headers.authorization.split(" ")[1];
   }
-
-  if (!token) {
+  if (token==null || token==="undefined") {
     return res.status(403).json({ status: "fail", message: "Not authorized to access this route" });
   }
-
   try {
+   
     const decoded = await jwt.verify(token, process.env.JWT_SECRET);
     const currentUser = await User.findById(decoded.id);
     if (!currentUser) {
@@ -54,9 +53,13 @@ mongoose
 
 // Controllo server attivo
 app.get("/", (req, res) => res.send(`Node and express server running on port ${PORT}`));
-app.use(express.json()); // Configure body-parser middleware
+app.use(express.json({ limit: '50mb' })); // Configure body-parser middleware
 app.use(cors({ origin: "http://localhost:3000" }));
 // Rotte
+// app.use((req, res, next) => {
+//   console.log(`Incoming request: ${req.method} ${req.url}`);
+//   next();
+// });
 app.use("/auth", userRoute);
 app.use("/api", protect, componentRoute);
 

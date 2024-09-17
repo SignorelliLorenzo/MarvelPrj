@@ -3,20 +3,12 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ComponentSchema = new Schema({
   Name: { type: String, required: true },
-  Desc: {type:Boolean, required:true, default:false},
+  Desc: {type: String, required:true, default:"Unknown"},
   Img: { type: String, required: true},
-  Details: { 
-    series: {
-      color: String,
-      typo: String,
-    },
-    events: {
-      color: String,
-    },
-    comics: {
-      color: String,
-      typo: String,
-    },
+  Details: {
+    series: {names:[{ type: String }]},
+    events: {names:[{ type: String }]},
+    comics: {names:[{ type: String }]},
   },
 });
 

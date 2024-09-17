@@ -1,9 +1,9 @@
 // componentsRoutes.js
 const express = require("express");
-const cardRoute = require("./card");
-const packetRoute = require("./packet");
-const profileRoute = require("./profile");
-const requestRoute = require("./request");
+const cardRoute = require("./Card");
+const packetRoute = require("./Packet");
+const profileRoute = require("./Profile");
+const requestRoute = require("./Request");
 
 const router = express.Router();
 

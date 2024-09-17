@@ -17,6 +17,7 @@ const createUser = async (req, res) => {
     });
     sendToken(user, 201, res);
   } catch (err) {
+    console.log(err)
     res.status(500).json({ success: false, error: err});
   }
 };
@@ -46,33 +47,42 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Update user profile image
-const updateUserProfileImage = async (req, res) => {
-  const { profileImage } = req.body;
+const updateProfile = async (req, res) => {
+  const { username, profileImage, password, favHero } = req.body;
   try {
-    const user = await User.findByIdAndUpdate(req.userId, { profileImage }, { new: true });
+    const updateFields = {};
+    // Check if new username is provided
+    if (favHero) {
+      updateFields.favHero = favHero;
+    }
+    if (username) {
+      updateFields.username = username;
+    }
+    // Check if new profile image is provided
+    if (profileImage) {
+      updateFields.profileImage = profileImage;
+    }
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateFields.password = hashedPassword;
+    }
+    const user = await User.findByIdAndUpdate(req.currentUser._id, updateFields, { new: true }).select('-password');
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
     res.status(200).json({ success: true, data: user });
   } catch (err) {
+    console.error(err); // Log the error for debugging
     res.status(500).json({ success: false, error: "Something went wrong" });
   }
 };
 
-// Update user username
-const updateUsername = async (req, res) => {
-  const { username } = req.body;
-  try {
-    const user = await User.findByIdAndUpdate(req.currentUser._id, { username }, { new: true });
-    res.status(200).json({ success: true, data: user });
-  } catch (err) {
-    res.status(500).json({ success: false, error: "Something went wrong" });
-  }
-};
 
 // Add credits to user
 const addCredits = async (req, res) => {
   const { credits } = req.body;
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.currentUser._id);
     user.credits += credits;
     await user.save();
     res.status(200).json({ success: true, data: user });
@@ -86,11 +96,18 @@ const sendToken = (user, statusCode, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
   res.status(statusCode).json({ success: true, token });
 };
-
+const getUserInfo = async (req, res) => {
+  try {
+    const user = await User.findById(req.currentUser._id).select('-password').populate('favHero');
+    res.status(200).json({ success: true, data: user });
+  } catch (err) {
+    res.status(500).json({ success: false, error: "Something went wrong" });
+  }
+};
 module.exports = {
+  getUserInfo,
   createUser,
   loginUser,
-  updateUserProfileImage,
-  updateUsername,
+  updateProfile,
   addCredits,
 };

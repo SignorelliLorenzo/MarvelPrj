@@ -16,17 +16,10 @@ const router = express.Router();
  */
 /**
  * @swagger
- * /api/card/copy/{id}:
+ * /api/card/copy:
  *   get:
  *     tags: [Cards]
  *     summary: Get all user cards and their duplicates
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: User ID
- *         schema:
- *           type: string
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -35,18 +28,37 @@ const router = express.Router();
  *       500:
  *         description: Error fetching user cards
  */
-router.get("/copy/:id", getUserCards);
+router.get("/copy", getUserCards);
 /**
  * @swagger
  * /api/card/all:
  *   get:
  *     tags: [Cards]
- *     summary: Get all cards
+ *     summary: Get all cards with optional filters
+ *     description: Fetches all cards, with optional filters for card name and result limit.
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: cardName
+ *         schema:
+ *           type: string
+ *         description: Filter cards that start with the specified card name
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: Limit the number of cards returned
  *     responses:
  *       200:
- *         description: A list of all cards
+ *         description: A list of cards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Card' # Adjust if using a schema for cards
  *       500:
  *         description: Error fetching cards
  */

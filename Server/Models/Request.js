@@ -10,8 +10,8 @@ const UserModel = require("./User");
 // Define the RequestSchema
 const RequestSchema = new Schema({
   credits: { type: Number, required: true, default: 0 },
-  giveCards: [{ type: Schema.Types.ObjectId, ref: "Copy", required: true }],
-  requestCards: [{ type: Schema.Types.ObjectId, ref: "Cards", required: false }],
+  tradedCards: [{ type: Schema.Types.ObjectId, ref: "Copy", required: true }], // quelle che dai
+  requestedCards: [{ type: Schema.Types.ObjectId, ref: "Card", required: false }], // quelle che richiedi
   ownerRequest: { type: Schema.Types.ObjectId, ref: "User", required: true },
   accepted: { type: Boolean, required: true, default: false },
 });
