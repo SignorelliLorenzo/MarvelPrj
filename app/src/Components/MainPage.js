@@ -227,7 +227,7 @@ const MainPage = () => {
           <Route path="/" element={<Navigate to="/my-album" />} />{" "}
           {/* Default route */}
           <Route path="/my-album" element={<Album />} />
-          <Route path="/scambi" element={<Scambi />} />
+          <Route path="/scambi" element={<Scambi  setUserParentInfo={setUserInfo}/>} />
           <Route
             path="/shop"
             element={<Shop setUserParentInfo={setUserInfo} isAdmin={userInfo.admin} />}

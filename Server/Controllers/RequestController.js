@@ -80,7 +80,8 @@ async function deleteRequest(req, res) {
       { $set: { ownerId: request.ownerRequest } }
     );
 
-    await RequestModel.updateOne({ _id: requestId } , { $set: { accepted: true } });
+   // await RequestModel.updateOne({ _id: requestId } , { $set: { accepted: true } });
+    await RequestModel.findByIdAndDelete(requestId) ;
     res.status(200).json({ message: "Request deleted successfully" });
   } catch (error) {
     console.log(error);
@@ -200,8 +201,8 @@ async function acceptRequest(req, res) {
     req.currentUser.credits-=request.credits
     const usr= await UserModel.findById(request.ownerRequest._id)
     usr.credits+=request.credits
-    usr.save()
-    req.currentUser.save()
+    await usr.save()
+    await req.currentUser.save()
     
     // Mark the request as accepted
     request.accepted = true;

@@ -24,7 +24,7 @@ import TradeRequestModal from "./Custom/TradeRequestModal";
 import ConfirmationModal from "./Custom/ConfirmationModal";
 import MarvelCoinIcon from "../images/Coin.ico";
 
-const TradePage = () => {
+const TradePage = ( setUserParentInfo) => {
   const [trades, setTrades] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [showAccepted, setShowAccepted] = useState(false); // State to toggle accepted requests
@@ -37,6 +37,7 @@ const TradePage = () => {
 
   const token = Cookies.get("token");
   const userId = JSON.parse(sessionStorage.getItem("userInfo"))._id;
+  let currentc=JSON.parse(sessionStorage.getItem("userInfo")).credits;
 
   const fetchData = async (url) => {
     try {
@@ -134,9 +135,14 @@ const TradePage = () => {
             headers: { Authorization: `Bearer ${token}`},
           }
         );
+        currentc=currentc-selectedTrade.price;
         setTrades((prevTrades) =>
           prevTrades.filter((trade) => trade._id !== selectedTrade._id)
         );
+        userinfo=sessionStorage.getItem("userInfo");
+        userinfo.credits=currentc;
+        setUserParentInfo(userinfo);
+        sessionStorage.setItem("userInfo", JSON.stringify(userinfo))
         setAcceptOpen(false);
       } catch (error) {
         console.error(`Error accepting trade:`, error);
@@ -368,8 +374,8 @@ const TradePage = () => {
             ) : (
               <IconButton
                 color="primary"
-                onClick={userHasCard(row.requestedCards) ? () => handleAcceptClick(row) : null}
-                disabled={!userHasCard(row.requestedCards) || row.status === "accepted"} // Disable button if the request is accepted
+                onClick={userHasCard(row.requestedCards) && row.credits<=currentc ? () => handleAcceptClick(row) : null}
+                disabled={!userHasCard(row.requestedCards)  ||  row.credits>currentc || row.accepted === true} // Disable button if the request is accepted
               >
                 <DoneIcon />
               </IconButton>

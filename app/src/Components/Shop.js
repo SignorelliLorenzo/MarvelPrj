@@ -118,6 +118,7 @@ const Shop = ({ setUserParentInfo, isAdmin }) => {
 
       if (response.success) {
         setUserParentInfo(response.data);
+        sessionStorage.setItem("userInfo", JSON.stringify(response.data))
         setModalMessage("Purchase successful!"); // Set success message
         setSuccessModalOpen(true); // Open success modal
       } else {
