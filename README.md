@@ -35,6 +35,7 @@ L'Album delle Figurine dei Super Eroi (AFSE) è una piattaforma web che consente
 - Gli utenti possono registrarsi con un nome utente, email, password e poi successivamente selezionare il loro supereroe preferito.
 - È possibile effettuare il login con le credenziali registrate.
 - Gestione della sessione utente tramite JWT, i cookie di sessione vengono salvati in modo sicuro in js-cookies, le informazioni dell'utente invece in localstorage.
+- alla cancellazione dell'utente vengono cancellate tutte le sue copie i e i suoi trade non ancora accettati per quelli accettati invece viene messo a null l'ownerId e vengono mantenuti
 
 ### Acquisto di Crediti
 
@@ -51,7 +52,7 @@ L'Album delle Figurine dei Super Eroi (AFSE) è una piattaforma web che consente
 - Gli utenti possono proporre scambi di figurine con altri utenti.
 - È possibile scambiare figurine singole o effettuare scambi complessi (es. due figurine per una).
 - Allo scambio le copie delle figurine vengono messe senza proprietario e vengono restituite in caso il trade venga cancellato
-- Gli scambi possono essere fatti con i crediti
+- Agli scambi possono essere allegati i crediti
 
 ## Architettura e Tecnologie Utilizzate
 
@@ -190,7 +191,7 @@ Ogni utente può acquistare pacchetti di figurine utilizzando i crediti virtuali
 Gli utenti possono proporre scambi di figurine semplici (1 figurina per 1) o scambi complessi (ad esempio, due figurine per una), inoltre si possono inserire dei costi in valuta virtuale. Il backend gestisce la validazione degli scambi e assicura che l'utente non possa ricevere figurine duplicate, quando uno scambio viene effettuato esso viene segnato come accettato e non viene eliminato, tutti gli scambi accettati possono essere visti se si seleziona show accepted.
 
 ### Prove di Funzionamento
-[]
+[VIDEO](https://drive.google.com/file/d/1dFOdrGGv-2HS4p9pFAGKqAQN6Qx5ab43/view?usp=sharing)
 
 ## Lavori Futuri
 

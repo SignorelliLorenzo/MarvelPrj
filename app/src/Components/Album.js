@@ -12,7 +12,7 @@ import {
   List,
   ListItem,
   ListItemText,
-  TextField, // Import TextField for the search bar
+  TextField,
   Button,
 } from "@mui/material";
 import albumTheme from "../Theme/AlbumTheme";
