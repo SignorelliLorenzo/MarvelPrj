@@ -27,6 +27,31 @@
 ## Introduzione
 
 L'Album delle Figurine dei Super Eroi (AFSE) è una piattaforma web che consente agli utenti di collezionare figurine virtuali di supereroi e di scambiarle con altri utenti. Gli utenti possono acquistare pacchetti di figurine, visualizzare le informazioni su ogni supereroe e proporre scambi. Il progetto si basa su un'integrazione con l'API Marvel per raccogliere i dati relativi ai supereroi.
+## SetUp
+###  Inizializzazione
+Clonare repository (o aprire il progetto dallo zip):
+https://github.com/GabrieleFirriolo/afse_marvel.git
+Navigare nella dir del frontend e installare le dipendenze:
+```
+cd MarvelPrj/app
+npm install
+```
+Navigare nella dir del backend e installare le dipendenze:
+```
+cd MarvelPrj/Server
+npm install
+```
+###  Avvio
+Avviare sia server che app:
+```
+cd MarvelPrj/app
+npm start
+```
+In una altra console:
+```
+cd MarvelPrj/Server
+npx nodemon server.js
+```
 
 ## Funzionalità dell'Applicazione
 
