@@ -88,7 +88,7 @@ async function buyPacket(req, res) {
     }
 
     const user = await UserModel.findById(userId);
-    if (user.credits < packet.Cost) {
+    if (user.credits < packet.Price) {
       return res.status(400).json({ message: "Not enough credits" });
     }
 

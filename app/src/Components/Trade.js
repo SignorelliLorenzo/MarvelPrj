@@ -23,8 +23,11 @@ import { MiniCard } from "./Custom/Card";
 import TradeRequestModal from "./Custom/TradeRequestModal";
 import ConfirmationModal from "./Custom/ConfirmationModal";
 import MarvelCoinIcon from "../images/Coin.ico";
+import ErrorModal from "./Custom/ErrorModal";
 
-const TradePage = ( setUserParentInfo) => {
+const TradePage = ( { setUserParentInfo }) => {
+  const [error, setError] = useState(null); // State for managing error messages
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for controlling the modal
   const [trades, setTrades] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [showAccepted, setShowAccepted] = useState(false); // State to toggle accepted requests
@@ -39,6 +42,9 @@ const TradePage = ( setUserParentInfo) => {
   const userId = JSON.parse(sessionStorage.getItem("userInfo"))._id;
   let currentc=JSON.parse(sessionStorage.getItem("userInfo")).credits;
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+  };
   const fetchData = async (url) => {
     try {
       const response = await axios.get(url, {
@@ -139,7 +145,7 @@ const TradePage = ( setUserParentInfo) => {
         setTrades((prevTrades) =>
           prevTrades.filter((trade) => trade._id !== selectedTrade._id)
         );
-        userinfo=sessionStorage.getItem("userInfo");
+        let userinfo=JSON.parse(sessionStorage.getItem("userInfo"));
         userinfo.credits=currentc;
         setUserParentInfo(userinfo);
         sessionStorage.setItem("userInfo", JSON.stringify(userinfo))
@@ -168,8 +174,11 @@ const TradePage = ( setUserParentInfo) => {
         }
       );
       setMyRequests((prevRequests) => [...prevRequests, response.data]);
+      
       toggleNewRequestModal(false);
     } catch (error) {
+      setError(error.response?.data?.message || 'An error occurred during registration');
+      setIsModalOpen(true);
       console.error("Error creating new request:", error);
     }
   };
@@ -467,6 +476,12 @@ const TradePage = ( setUserParentInfo) => {
           confirmText="Accept"
         />
       </Box>
+      <ErrorModal 
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        title="Error creating trade request"
+        message={error}
+      />
     </ThemeProvider>
   );
 };

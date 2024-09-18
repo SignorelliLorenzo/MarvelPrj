@@ -17,7 +17,7 @@ import ShopSection from "./Custom/ShopSection";
 import Cookies from "js-cookie";
 import AddIcon from "@mui/icons-material/Add"; // Icon for adding new package
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import ErrorModal from "./Custom/ErrorModal";
 import AddPacketModal from "./Custom/AddPacketModal"; // Import the AddPacketModal component
 
 // Import images directly
@@ -31,17 +31,11 @@ const Shop = ({ setUserParentInfo, isAdmin }) => {
   const token = Cookies.get("token");
   const [credits, setCredits] = useState([]);
   const [packages, setPackages] = useState([]);
-
-  // Modal states
-  const [errorModalOpen, setErrorModalOpen] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [balanceModalOpen, setBalanceModalOpen] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
+  const [error, setError] = useState(null); // State for managing error messages
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for controlling the modal
 
   // Admin Modals (Add and Delete)
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState(null); // For delete modal
 
   useEffect(() => {
     const fetchShopItems = async () => {
@@ -119,15 +113,11 @@ const Shop = ({ setUserParentInfo, isAdmin }) => {
       if (response.success) {
         setUserParentInfo(response.data);
         sessionStorage.setItem("userInfo", JSON.stringify(response.data))
-        setModalMessage("Purchase successful!"); // Set success message
-        setSuccessModalOpen(true); // Open success modal
-      } else {
-        setModalMessage("Insufficient balance."); // Set insufficient balance message
-        setBalanceModalOpen(true); // Open insufficient balance modal
-      }
+      } 
     } catch (error) {
-      setModalMessage("Error buying credits: " + error.message); // Set error message
-      setErrorModalOpen(true); // Open error modal
+      setError("Error buying credits: " + error.response?.data?.message || 'An error occurred during credit buy'); // Set error message
+      setIsModalOpen(true); // Open error modal
+      console.error("Error buying credits:", error);
     }
   };
 
@@ -158,6 +148,8 @@ const Shop = ({ setUserParentInfo, isAdmin }) => {
         credits: prevUserInfo.credits - packagePrice, // Deduct the package price from the balance
       }));
     } catch (error) {
+      setError(error.response?.data?.message || 'An error occurred during package purchase'); // Set error message
+      setIsModalOpen(true); // Open error modal
       console.error("Error buying package:", error);
     }
   };
@@ -175,7 +167,9 @@ const Shop = ({ setUserParentInfo, isAdmin }) => {
       );
       setPackages(packages.filter((pkg) => pkg.id !== Packet.id))
     } catch (error) {
-      console.error("Error deleting package:", error);
+      setError(error.response?.data?.message || 'An error occurred during package deletion'); // Set error message
+      setIsModalOpen(true); // Open error modal
+      console.error("Error buying package:", error);
     }
   };
 
@@ -230,9 +224,9 @@ const Shop = ({ setUserParentInfo, isAdmin }) => {
     }
   };
 
-  const handleCloseErrorModal = () => setErrorModalOpen(false);
-  const handleCloseSuccessModal = () => setSuccessModalOpen(false);
-  const handleCloseBalanceModal = () => setBalanceModalOpen(false);
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
+  };
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: "2rem" }}>
@@ -320,7 +314,6 @@ const Shop = ({ setUserParentInfo, isAdmin }) => {
               <DeleteIcon />
            ) : null}
         handleBadgeClick={isAdmin ? handleDeletePackage : null}
-        onDelete={setSelectedPackage}
       />
 
       {/* AddPacketModal component */}
@@ -329,6 +322,12 @@ const Shop = ({ setUserParentInfo, isAdmin }) => {
         onClose={() => setCreateModalOpen(false)} // Close the modal
         handleSubmitNewPacket={handleCreatePackage} // Handle create packet
         token={token} // Pass the token for API requests
+      />
+      <ErrorModal 
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        title="Error"
+        message={error}
       />
     </Container>
   );

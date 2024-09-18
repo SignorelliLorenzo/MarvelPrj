@@ -8,6 +8,28 @@ async function addRequest(req, res) {
   try {
     const { offeredCards, requestedCard, credits } = req.body;
 
+    // Controllo 1: Verifica che le carte richieste non siano anche offerte
+    const duplicateCards = requestedCard.filter(cardId => offeredCards.includes(cardId));
+    if (duplicateCards.length > 0) {
+      return res.status(400).json({
+        message: `Cannot request and offer the same card(s)`,
+      });
+    }
+
+    // Controllo 2: Verifica che l'utente non possieda già le carte richieste
+    const userRequestedCopies = await CopyModel.find({
+      ownerId: req.currentUser._id,
+      cardId: { $in: requestedCard },
+    });
+
+    if (userRequestedCopies.length > 0) {
+      const alreadyOwnedCards = userRequestedCopies.map(copy => copy.cardId);
+      return res.status(400).json({
+        message: `Cannot request card(s) that the user already owns`,
+      });
+    }
+
+    // Controlla che l'utente abbia tutte le carte offerte
     for (let cardId of offeredCards) {
       const userCopyCount = await CopyModel.countDocuments({
         ownerId: req.currentUser._id,
@@ -19,8 +41,9 @@ async function addRequest(req, res) {
           .json({ message: `User does not have the card to give: ${cardId}` });
       }
     }
+
     let givecopys = [];
-    // Remove ownership of the given cards by setting ownerId to null
+    // Rimuove la proprietà dell'utente dalle carte offerte impostando ownerId a null
     for (let cardId of offeredCards) {
       const givecopy = await CopyModel.findOne({
         ownerId: req.currentUser._id,
@@ -32,6 +55,8 @@ async function addRequest(req, res) {
       );
       givecopys.push(givecopy._id);
     }
+
+    // Crea una nuova richiesta
     const newRequest = new RequestModel({
       tradedCards: givecopys,
       requestedCards: requestedCard,
@@ -40,18 +65,20 @@ async function addRequest(req, res) {
     });
 
     await newRequest.save();
-    const populatedRequest = await RequestModel.findById(newRequest._id) // Find the saved document
+
+    // Popola le relazioni con le carte scambiate, richieste e l'utente
+    const populatedRequest = await RequestModel.findById(newRequest._id)
       .populate({
         path: "tradedCards",
         populate: {
-          path: "cardId", // Populate the 'cardId' from the 'Copy' model
-          model: "Card", // Specify the 'Card' model to get actual card details
+          path: "cardId", // Popola la proprietà 'cardId' del modello 'Copy'
+          model: "Card",  // Specifica il modello 'Card' per ottenere i dettagli della carta
         },
       })
-      .populate("requestedCards") // Populate requested cards
+      .populate("requestedCards") // Popola le carte richieste
       .populate({
         path: "ownerRequest",
-        select: "username", // Only retrieve the username from the User model
+        select: "username", // Recupera solo lo username dell'utente
       });
 
     res.status(201).json(populatedRequest);
@@ -60,6 +87,7 @@ async function addRequest(req, res) {
     res.status(500).json({ message: "Error creating request", error });
   }
 }
+
 
 // Delete a request by ID
 async function deleteRequest(req, res) {
