@@ -3,7 +3,7 @@
 - **Anno Accademico:** 2023/2024  
 - **Corso:** Programmazione Web e Mobile  
 - **Autore:** Lorenzo Signorelli 
-- **Matricola:** 10135A  
+- **Matricola:** ---
 
 ## Indice
 
